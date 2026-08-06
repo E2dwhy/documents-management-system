@@ -6,7 +6,7 @@ import { updateSession } from "@/lib/supabase/middleware";
  * Route-guard redirects (login required, role checks) are added in Phase 3
  * once auth pages exist — see `src/lib/supabase/middleware.ts`.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabaseResponse } = await updateSession(request);
   return supabaseResponse;
 }
