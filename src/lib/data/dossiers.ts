@@ -19,6 +19,12 @@ export async function getDossierByReference(reference: string): Promise<DossierR
   return data ?? null;
 }
 
+export async function getDossierByQrToken(qrToken: string): Promise<DossierRow | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("dossiers").select("*").eq("qr_token", qrToken).maybeSingle();
+  return data ?? null;
+}
+
 export async function getDossierType(typeId: string) {
   const supabase = await createClient();
   const { data } = await supabase

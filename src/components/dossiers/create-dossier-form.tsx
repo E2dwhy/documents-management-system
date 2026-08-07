@@ -13,17 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createDossierAction, initialDossierFormState } from "@/lib/actions/dossiers";
-
-interface DossierType {
-  id: string;
-  label: string;
-  max_scans: number;
-}
-
-interface Service {
-  id: string;
-  name: string;
-}
+import type { DossierType, Service } from "@/lib/data/reference-data";
 
 export function CreateDossierForm({ types, services }: { types: DossierType[]; services: Service[] }) {
   const [state, formAction, isPending] = useActionState(createDossierAction, initialDossierFormState);

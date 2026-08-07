@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { translateRpcError } from "@/lib/data/errors";
 import { createDossierSchema } from "@/lib/validations/dossier";
@@ -43,4 +44,63 @@ export async function createDossierAction(
   // Straight to the printable label — matches the brief: "on save,
   // generate reference + QR, show printable QR label".
   redirect(`/dossiers/${data.reference}/etiquette`);
+}
+
+export type DossierActionState = {
+  status: "idle" | "error" | "success";
+  message?: string;
+  reference?: string;
+};
+
+export const initialDossierActionState: DossierActionState = { status: "idle" };
+
+export async function closeDossierAction(
+  _prevState: DossierActionState,
+  formData: FormData,
+): Promise<DossierActionState> {
+  const dossierId = formData.get("dossierId");
+  if (typeof dossierId !== "string") {
+    return { status: "error", message: "Dossier invalide." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("close_dossier", {
+    p_dossier_id: dossierId,
+    p_note: null,
+  });
+
+  if (error || !data) {
+    return { status: "error", message: translateRpcError(error?.message) };
+  }
+
+  revalidatePath(`/dossiers/${data.reference}`);
+  return { status: "success", reference: data.reference };
+}
+
+export async function reopenDossierAction(
+  _prevState: DossierActionState,
+  formData: FormData,
+): Promise<DossierActionState> {
+  const dossierId = formData.get("dossierId");
+  const reason = formData.get("reason");
+
+  if (typeof dossierId !== "string") {
+    return { status: "error", message: "Dossier invalide." };
+  }
+  if (typeof reason !== "string" || reason.trim().length === 0) {
+    return { status: "error", message: "Un motif est requis pour rouvrir le dossier." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("reopen_dossier", {
+    p_dossier_id: dossierId,
+    p_reason: reason.trim(),
+  });
+
+  if (error || !data) {
+    return { status: "error", message: translateRpcError(error?.message) };
+  }
+
+  revalidatePath(`/dossiers/${data.reference}`);
+  return { status: "success", reference: data.reference };
 }

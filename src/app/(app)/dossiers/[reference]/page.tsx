@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Lock, QrCode } from "lucide-react";
+import { Lock, QrCode, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { DossierStatusBadge } from "@/components/dossiers/dossier-status-badge";
 import { MouvementTimeline } from "@/components/dossiers/mouvement-timeline";
+import { CloseDossierButton } from "@/components/dossiers/close-dossier-button";
+import { ReopenDossierButton } from "@/components/dossiers/reopen-dossier-button";
 import {
   getDossierByReference,
   getDossierType,
@@ -15,6 +17,8 @@ import {
   getProfilesByIds,
   getServicesByIds,
 } from "@/lib/data/dossiers";
+import { getCurrentProfile } from "@/lib/auth/get-current-profile";
+import { canAccessDossier } from "@/lib/dossiers/access";
 import { formatDateTime } from "@/lib/date";
 
 export async function generateMetadata({
@@ -35,9 +39,10 @@ export default async function DossierDetailPage({
   const dossier = await getDossierByReference(reference);
   if (!dossier) notFound();
 
-  const [type, mouvements] = await Promise.all([
+  const [type, mouvements, profile] = await Promise.all([
     getDossierType(dossier.type_id),
     getMouvementsForDossier(dossier.id),
+    getCurrentProfile(),
   ]);
 
   const serviceIds = [
@@ -56,6 +61,17 @@ export default async function DossierDetailPage({
   const createdBy = dossier.created_by ? profileNameById.get(dossier.created_by) : undefined;
   const closedBy = dossier.closed_by ? profileNameById.get(dossier.closed_by) : undefined;
   const progressPct = (dossier.scan_count / dossier.max_scans) * 100;
+
+  const canScan = Boolean(
+    profile && !dossier.is_locked && profile.role !== "auditeur" && canAccessDossier(profile, dossier),
+  );
+  const canClose = Boolean(
+    profile &&
+      !dossier.is_locked &&
+      dossier.scan_count >= dossier.max_scans &&
+      (profile.role === "admin" || (profile.role === "responsable_service" && canAccessDossier(profile, dossier))),
+  );
+  const canReopen = Boolean(profile && dossier.is_locked && profile.role === "admin");
 
   return (
     <div className="space-y-6">
@@ -77,12 +93,24 @@ export default async function DossierDetailPage({
           </div>
         </div>
 
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/dossiers/${dossier.reference}/etiquette`}>
-            <QrCode className="size-4" aria-hidden />
-            Étiquette QR
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/dossiers/${dossier.reference}/etiquette`}>
+              <QrCode className="size-4" aria-hidden />
+              Étiquette QR
+            </Link>
+          </Button>
+          {canScan ? (
+            <Button asChild size="sm">
+              <Link href={`/dossiers/${dossier.reference}/scan`}>
+                <ScanLine className="size-4" aria-hidden />
+                Scanner
+              </Link>
+            </Button>
+          ) : null}
+          {canClose ? <CloseDossierButton dossierId={dossier.id} /> : null}
+          {canReopen ? <ReopenDossierButton dossierId={dossier.id} /> : null}
+        </div>
       </div>
 
       <Card>

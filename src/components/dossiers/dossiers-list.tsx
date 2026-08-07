@@ -20,16 +20,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { formatDate } from "@/lib/date";
 import { STATUS_LABELS } from "@/lib/dossiers/status";
 import type { DossierStatus } from "@/types/database";
-
-interface DossierType {
-  id: string;
-  label: string;
-}
-
-interface Service {
-  id: string;
-  name: string;
-}
+import type { DossierType, Service } from "@/lib/data/reference-data";
 
 const PERIOD_LABELS: Record<PeriodFilter, string> = {
   all: "Toute période",

@@ -6,7 +6,19 @@ import { createClient } from "@/lib/supabase/server";
  * query per row in lists — callers fetch these once and build a lookup map.
  */
 
-export async function getActiveServices() {
+export interface Service {
+  id: string;
+  name: string;
+}
+
+export interface DossierType {
+  id: string;
+  name: string;
+  label: string;
+  max_scans: number;
+}
+
+export async function getActiveServices(): Promise<Service[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("services")
@@ -16,7 +28,7 @@ export async function getActiveServices() {
   return data ?? [];
 }
 
-export async function getActiveDossierTypes() {
+export async function getActiveDossierTypes(): Promise<DossierType[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("dossier_types")
