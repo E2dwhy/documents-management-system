@@ -16,7 +16,7 @@ export function AppNav({ items }: { items: NavItem[] }) {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60"
+      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 print:hidden"
     >
       <ul className="mx-auto flex max-w-3xl items-stretch justify-around">
         {items.map(({ href, label, icon: Icon }) => {

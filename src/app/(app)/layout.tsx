@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         roleLabel={ROLE_LABELS[profile.role]}
         serviceName={profile.service_name}
       />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 pb-24">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 pb-24 print:p-0">{children}</main>
       <AppNav items={items} />
     </div>
   );
