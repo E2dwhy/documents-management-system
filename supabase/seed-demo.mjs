@@ -15,13 +15,22 @@
 //
 // Usage:
 //   node --env-file=.env.local supabase/seed-demo.mjs
+//
+// On Node < 22: @supabase/supabase-js's realtime client needs a global
+// WebSocket, which Node only ships stable from v22. Add the flag below or
+// upgrade Node — see https://github.com/orgs/supabase/discussions/45715.
+//   node --experimental-websocket --env-file=.env.local supabase/seed-demo.mjs
 // =============================================================================
 
 import { createClient } from "@supabase/supabase-js";
 
+// Supports both the current Supabase key system (publishable/secret) and
+// the legacy one (anon/service_role) — see src/lib/supabase/env.ts, which
+// this mirrors (duplicated rather than imported: this script runs under
+// plain Node, which can't import a .ts file without a build step).
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const serviceRoleKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!url || !anonKey || !serviceRoleKey || url.includes("xxxxxxxxxxxx")) {
   console.error(
@@ -150,6 +159,18 @@ async function main() {
     "create_dossier (B)",
   );
 
+  // "demande_attestation" has max_scans=2 — two scans needed before it can
+  // be closed (close_dossier itself enforces this; register_scan doesn't).
+  await rpcOrThrow(
+    responsableClient.rpc("register_scan", {
+      p_dossier_id: dossierB.id,
+      p_action: "scan",
+      p_client_uuid: crypto.randomUUID(),
+      p_note: "Reçu au secrétariat.",
+    }),
+    "register_scan (B, step 1/2)",
+  );
+
   await rpcOrThrow(
     responsableClient.rpc("register_scan", {
       p_dossier_id: dossierB.id,
@@ -158,7 +179,7 @@ async function main() {
       p_new_status: "valide",
       p_note: "Validé par le secrétariat.",
     }),
-    "register_scan (B)",
+    "register_scan (B, step 2/2)",
   );
 
   await rpcOrThrow(

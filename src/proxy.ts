@@ -1,13 +1,33 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * Refreshes the Supabase session cookie on every navigable request.
- * Route-guard redirects (login required, role checks) are added in Phase 3
- * once auth pages exist — see `src/lib/supabase/middleware.ts`.
+ * Paths reachable without a session. Everything else requires login —
+ * deny by default, matching the RLS posture in supabase/migrations/.
  */
+const PUBLIC_PATHS = ["/login", "/reset-password", "/update-password", "/auth/callback"];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
 export async function proxy(request: NextRequest) {
-  const { supabaseResponse } = await updateSession(request);
+  const { supabaseResponse, user } = await updateSession(request);
+  const { pathname, search } = request.nextUrl;
+
+  if (!user && !isPublicPath(pathname)) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", `${pathname}${search}`);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Already signed in: bounce away from the login/reset screens (but not
+  // /update-password — that page is reached via a fresh recovery session
+  // while technically "logged in", and must stay reachable).
+  if (user && (pathname === "/login" || pathname === "/reset-password")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   return supabaseResponse;
 }
 

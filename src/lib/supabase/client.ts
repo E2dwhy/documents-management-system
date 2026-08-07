@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 /**
  * Supabase client for use in Client Components.
@@ -9,8 +10,5 @@ import type { Database } from "@/types/database";
  * bound to the same browser storage (cookies) for auth state.
  */
 export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  return createBrowserClient<Database>(getSupabaseUrl(), getSupabasePublishableKey());
 }
