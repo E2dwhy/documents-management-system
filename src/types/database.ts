@@ -258,6 +258,10 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["dossiers"]["Row"];
       };
+      flag_late_dossiers: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
     };
     Enums: {
       user_role: UserRole;

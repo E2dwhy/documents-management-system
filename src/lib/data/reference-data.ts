@@ -18,6 +18,11 @@ export interface DossierType {
   max_scans: number;
 }
 
+export interface ProfileOption {
+  id: string;
+  full_name: string;
+}
+
 export async function getActiveServices(): Promise<Service[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -35,5 +40,13 @@ export async function getActiveDossierTypes(): Promise<DossierType[]> {
     .select("id, name, label, max_scans")
     .eq("is_active", true)
     .order("label");
+  return data ?? [];
+}
+
+/** All profiles, including deactivated ones — the audit "user" filter
+ * needs to find actions performed by someone no longer active. */
+export async function getAllProfiles(): Promise<ProfileOption[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("profiles").select("id, full_name").order("full_name");
   return data ?? [];
 }

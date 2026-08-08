@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useUnreadNotificationsCount } from "@/hooks/use-notifications";
 import type { NavItem } from "@/lib/auth/nav-items";
 
 /**
@@ -12,6 +13,7 @@ import type { NavItem } from "@/lib/auth/nav-items";
  */
 export function AppNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
   return (
     <nav
@@ -21,17 +23,25 @@ export function AppNav({ items }: { items: NavItem[] }) {
       <ul className="mx-auto flex max-w-3xl items-stretch justify-around">
         {items.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(`${href}/`);
+          const badge = href === "/notifications" && unreadCount > 0 ? unreadCount : null;
           return (
             <li key={href} className="min-w-0 flex-1">
               <Link
                 href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[11px] font-medium transition-colors",
+                  "relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[11px] font-medium transition-colors",
                   isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className="size-5 shrink-0" aria-hidden />
+                <span className="relative">
+                  <Icon className="size-5 shrink-0" aria-hidden />
+                  {badge ? (
+                    <span className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-semibold text-white">
+                      {badge > 9 ? "9+" : badge}
+                    </span>
+                  ) : null}
+                </span>
                 <span className="truncate">{label}</span>
               </Link>
             </li>

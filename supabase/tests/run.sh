@@ -70,6 +70,7 @@ echo "→ Running test matrix"
 run_sql "$SCRIPT_DIR/01_seed_test_users.sql"
 run_sql "$SCRIPT_DIR/02_rpc_and_rls.sql"
 run_sql "$SCRIPT_DIR/03_extra_checks.sql"
+run_sql "$SCRIPT_DIR/04_late_dossiers.sql"
 
 echo ""
-echo "✓ All Phase 2 data-layer tests passed."
+echo "✓ All data-layer tests passed."

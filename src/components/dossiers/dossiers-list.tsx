@@ -15,19 +15,21 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { DossierStatusBadge } from "@/components/dossiers/dossier-status-badge";
-import { PAGE_SIZE, useDossiersList, type PeriodFilter } from "@/hooks/use-dossiers-list";
+import {
+  PAGE_SIZE,
+  useDossiersList,
+  fetchAllDossiersForExport,
+  type PeriodFilter,
+} from "@/hooks/use-dossiers-list";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { formatDate } from "@/lib/date";
+import { formatDate, formatDateTime } from "@/lib/date";
 import { STATUS_LABELS } from "@/lib/dossiers/status";
+import { PERIOD_LABELS } from "@/lib/filters/period";
+import { ExportButtons } from "@/components/shared/export-buttons";
+import type { ExportColumn } from "@/lib/export/types";
 import type { DossierStatus } from "@/types/database";
+import type { DossierRow } from "@/lib/data/dossiers";
 import type { DossierType, Service } from "@/lib/data/reference-data";
-
-const PERIOD_LABELS: Record<PeriodFilter, string> = {
-  all: "Toute période",
-  "7": "7 derniers jours",
-  "30": "30 derniers jours",
-  "90": "90 derniers jours",
-};
 
 export function DossiersList({ types, services }: { types: DossierType[]; services: Service[] }) {
   const [searchInput, setSearchInput] = useState("");
@@ -47,6 +49,20 @@ export function DossiersList({ types, services }: { types: DossierType[]; servic
 
   const typeLabelById = useMemo(() => new Map(types.map((t) => [t.id, t.label])), [types]);
   const serviceNameById = useMemo(() => new Map(services.map((s) => [s.id, s.name])), [services]);
+
+  const exportColumns: ExportColumn<DossierRow>[] = useMemo(
+    () => [
+      { header: "Référence", accessor: (d) => d.reference },
+      { header: "Titre", accessor: (d) => d.title },
+      { header: "Propriétaire", accessor: (d) => d.owner_name ?? "" },
+      { header: "Type", accessor: (d) => typeLabelById.get(d.type_id) ?? "" },
+      { header: "Statut", accessor: (d) => STATUS_LABELS[d.status] },
+      { header: "Service actuel", accessor: (d) => (d.current_service_id ? (serviceNameById.get(d.current_service_id) ?? "") : "") },
+      { header: "Progression", accessor: (d) => `${d.scan_count}/${d.max_scans}` },
+      { header: "Créé le", accessor: (d) => formatDateTime(d.created_at) },
+    ],
+    [typeLabelById, serviceNameById],
+  );
 
   const hasActiveFilters =
     status !== "all" || serviceId !== "all" || typeId !== "all" || period !== "all" || search !== "";
@@ -178,7 +194,15 @@ export function DossiersList({ types, services }: { types: DossierType[]; servic
         </p>
       ) : data && data.rows.length > 0 ? (
         <>
-          <p className="text-xs text-muted-foreground">{data.count} dossier{data.count > 1 ? "s" : ""}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">{data.count} dossier{data.count > 1 ? "s" : ""}</p>
+            <ExportButtons
+              fetchRows={() => fetchAllDossiersForExport({ search, status, serviceId, typeId, period })}
+              columns={exportColumns}
+              title="Dossiers"
+              filename="dossiers"
+            />
+          </div>
           <ul className="space-y-2">
             {data.rows.map((dossier) => (
               <li key={dossier.id}>

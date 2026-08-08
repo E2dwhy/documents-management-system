@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { LayoutDashboard } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { ROLE_LABELS } from "@/lib/auth/roles";
-import { ComingSoon } from "@/components/layout/coming-soon";
+import { DashboardContent } from "@/components/dashboard/dashboard-content";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 
@@ -19,12 +18,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <ComingSoon
-        icon={LayoutDashboard}
-        title="Statistiques et vue d'ensemble"
-        description="Dossiers en cours, clôturés, en retard, et activité récente."
-        phase="Phase 7"
-      />
+      <DashboardContent />
     </div>
   );
 }

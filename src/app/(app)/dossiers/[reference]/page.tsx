@@ -21,6 +21,7 @@ import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { canAccessDossier } from "@/lib/dossiers/access";
 import { formatDateTime } from "@/lib/date";
 import { CacheDossierOnView } from "@/components/offline/cache-dossier-on-view";
+import { DossierRealtimeRefresher } from "@/components/dossiers/dossier-realtime-refresher";
 import type { CachedDossierSnapshot, CachedMouvement } from "@/lib/offline/types";
 
 export async function generateMetadata({
@@ -94,6 +95,7 @@ export default async function DossierDetailPage({
   return (
     <div className="space-y-6">
       <CacheDossierOnView snapshot={snapshot} />
+      <DossierRealtimeRefresher dossierId={dossier.id} />
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
