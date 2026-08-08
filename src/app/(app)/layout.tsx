@@ -4,6 +4,7 @@ import { navItemsForRole } from "@/lib/auth/nav-items";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNav } from "@/components/layout/app-nav";
+import { CacheProfileOnLoad } from "@/components/offline/cache-profile-on-load";
 
 /**
  * Shared shell for every authenticated screen: top bar (org + user menu)
@@ -24,6 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
+      <CacheProfileOnLoad profile={profile} />
       <AppHeader
         fullName={profile.full_name}
         roleLabel={ROLE_LABELS[profile.role]}

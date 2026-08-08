@@ -7,8 +7,9 @@ export const metadata: Metadata = { title: "QR" };
 
 /**
  * The URL printed on every QR label points here. Reached two ways:
- *  - our own in-app camera scanner decodes the URL and navigates here
- *    (or resolves it directly — see scanner-entry.tsx — either path works)
+ *  - our own in-app scanner (src/components/scanner/scanner-flow.tsx)
+ *    resolves the decoded URL/token itself and never actually navigates
+ *    here — this route exists for the other case:
  *  - a generic camera app opens the printed label's URL directly in a
  *    browser, landing on this exact route (guarded by src/proxy.ts like
  *    everything else — an unauthenticated visitor is sent to /login first,

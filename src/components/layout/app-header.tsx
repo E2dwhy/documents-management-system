@@ -1,6 +1,7 @@
 import { QrCode } from "lucide-react";
 import { appConfig } from "@/lib/config";
 import { UserMenu } from "@/components/layout/user-menu";
+import { SyncStatusBadge } from "@/components/offline/sync-status-badge";
 
 export function AppHeader({
   fullName,
@@ -18,7 +19,10 @@ export function AppHeader({
           <QrCode className="size-5 shrink-0" aria-hidden />
           <span className="truncate text-sm font-semibold">{appConfig.orgName}</span>
         </div>
-        <UserMenu fullName={fullName} roleLabel={roleLabel} serviceName={serviceName} />
+        <div className="flex items-center gap-1">
+          <SyncStatusBadge />
+          <UserMenu fullName={fullName} roleLabel={roleLabel} serviceName={serviceName} />
+        </div>
       </div>
     </header>
   );

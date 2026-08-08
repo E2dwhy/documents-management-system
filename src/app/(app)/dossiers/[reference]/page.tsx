@@ -20,6 +20,8 @@ import {
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { canAccessDossier } from "@/lib/dossiers/access";
 import { formatDateTime } from "@/lib/date";
+import { CacheDossierOnView } from "@/components/offline/cache-dossier-on-view";
+import type { CachedDossierSnapshot, CachedMouvement } from "@/lib/offline/types";
 
 export async function generateMetadata({
   params,
@@ -73,8 +75,25 @@ export default async function DossierDetailPage({
   );
   const canReopen = Boolean(profile && dossier.is_locked && profile.role === "admin");
 
+  const cachedMouvements: CachedMouvement[] = mouvements.map((m) => ({
+    ...m,
+    actorName: m.performed_by ? (profileNameById.get(m.performed_by)?.full_name ?? null) : null,
+    fromServiceName: m.from_service_id ? (serviceNameById.get(m.from_service_id)?.name ?? null) : null,
+    toServiceName: m.to_service_id ? (serviceNameById.get(m.to_service_id)?.name ?? null) : null,
+  }));
+  const snapshot: CachedDossierSnapshot = {
+    reference: dossier.reference,
+    qrToken: dossier.qr_token,
+    dossier,
+    typeLabel: type?.label ?? "",
+    currentServiceName: currentService?.name ?? null,
+    mouvements: cachedMouvements,
+    cachedAt: new Date().toISOString(),
+  };
+
   return (
     <div className="space-y-6">
+      <CacheDossierOnView snapshot={snapshot} />
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">

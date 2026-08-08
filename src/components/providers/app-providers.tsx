@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SwProvider } from "@/components/pwa/sw-provider";
+import { OfflineSyncProvider } from "@/components/offline/offline-sync-provider";
 
 /**
  * Single composition point for every client-side provider the app needs.
@@ -23,6 +24,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <QueryProvider>
           <TooltipProvider delayDuration={200}>
             {children}
+            <OfflineSyncProvider />
             <Toaster position="top-center" richColors closeButton />
           </TooltipProvider>
         </QueryProvider>

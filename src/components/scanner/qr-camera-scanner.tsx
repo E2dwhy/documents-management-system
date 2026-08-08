@@ -5,7 +5,7 @@ import { Scanner, type IDetectedBarcode, type IScannerError } from "@yudiel/reac
 /**
  * Thin wrapper around @yudiel/react-qr-scanner so the rest of the app only
  * deals with a decoded string. Imported via next/dynamic with ssr:false
- * (see scanner-entry.tsx) — this touches camera APIs that don't exist
+ * (see scan-input-panel.tsx) — this touches camera APIs that don't exist
  * server-side.
  */
 export function QrCameraScanner({

@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
-import { getDossierByReference, getDossierType, getServicesByIds } from "@/lib/data/dossiers";
+import {
+  getDossierByReference,
+  getDossierType,
+  getMouvementsForDossier,
+  getProfilesByIds,
+  getServicesByIds,
+} from "@/lib/data/dossiers";
 import { getActiveServices } from "@/lib/data/reference-data";
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
-import { getScanBlockReason } from "@/lib/dossiers/access";
 import { ScanConfirmation } from "@/components/scanner/scan-confirmation";
+import type { CachedMouvement } from "@/lib/offline/types";
 
 export const metadata: Metadata = { title: "Scanner un dossier" };
 
@@ -21,36 +26,43 @@ export default async function DossierScanPage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const [type, services, currentServiceMap] = await Promise.all([
+  const [type, services, mouvements] = await Promise.all([
     getDossierType(dossier.type_id),
     getActiveServices(),
-    getServicesByIds([dossier.current_service_id]),
+    getMouvementsForDossier(dossier.id),
   ]);
 
-  const blockReason = getScanBlockReason(profile, dossier);
+  const serviceIds = [
+    dossier.current_service_id,
+    ...mouvements.map((m) => m.from_service_id),
+    ...mouvements.map((m) => m.to_service_id),
+  ];
+  const profileIds = [dossier.created_by, dossier.closed_by, ...mouvements.map((m) => m.performed_by)];
+  const [serviceNameById, profileNameById] = await Promise.all([
+    getServicesByIds(serviceIds),
+    getProfilesByIds(profileIds),
+  ]);
+
+  const cachedMouvements: CachedMouvement[] = mouvements.map((m) => ({
+    ...m,
+    actorName: m.performed_by ? (profileNameById.get(m.performed_by)?.full_name ?? null) : null,
+    fromServiceName: m.from_service_id ? (serviceNameById.get(m.from_service_id)?.name ?? null) : null,
+    toServiceName: m.to_service_id ? (serviceNameById.get(m.to_service_id)?.name ?? null) : null,
+  }));
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold tracking-tight">Scanner un dossier</h1>
-
-      {blockReason ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-16 text-center">
-          <AlertTriangle className="size-8 text-muted-foreground" aria-hidden />
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{dossier.reference}</p>
-            <p className="max-w-xs text-sm text-muted-foreground">{blockReason}</p>
-          </div>
-        </div>
-      ) : (
-        <ScanConfirmation
-          dossier={dossier}
-          typeLabel={type?.label ?? ""}
-          currentServiceName={
-            dossier.current_service_id ? (currentServiceMap.get(dossier.current_service_id)?.name ?? null) : null
-          }
-          services={services}
-        />
-      )}
+      <ScanConfirmation
+        dossier={dossier}
+        typeLabel={type?.label ?? ""}
+        currentServiceName={
+          dossier.current_service_id ? (serviceNameById.get(dossier.current_service_id)?.name ?? null) : null
+        }
+        services={services}
+        profile={profile}
+        mouvements={cachedMouvements}
+      />
     </div>
   );
 }
