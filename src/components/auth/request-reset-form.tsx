@@ -5,7 +5,8 @@ import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { requestPasswordResetAction, initialFormState } from "@/lib/actions/auth";
+import { requestPasswordResetAction } from "@/lib/actions/auth";
+import { initialFormState } from "@/lib/actions/auth-state";
 
 export function RequestResetForm() {
   const [state, formAction, isPending] = useActionState(requestPasswordResetAction, initialFormState);

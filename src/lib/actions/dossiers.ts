@@ -5,13 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { translateRpcError } from "@/lib/data/errors";
 import { createDossierSchema } from "@/lib/validations/dossier";
-
-export type DossierFormState = {
-  status: "idle" | "error";
-  message?: string;
-};
-
-export const initialDossierFormState: DossierFormState = { status: "idle" };
+import type { DossierFormState, DossierActionState } from "@/lib/actions/dossiers-state";
 
 export async function createDossierAction(
   _prevState: DossierFormState,
@@ -45,14 +39,6 @@ export async function createDossierAction(
   // generate reference + QR, show printable QR label".
   redirect(`/dossiers/${data.reference}/etiquette`);
 }
-
-export type DossierActionState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-  reference?: string;
-};
-
-export const initialDossierActionState: DossierActionState = { status: "idle" };
 
 export async function closeDossierAction(
   _prevState: DossierActionState,

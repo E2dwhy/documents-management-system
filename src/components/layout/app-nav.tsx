@@ -2,9 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, FolderOpen, ScanLine, ClipboardList, Bell, Settings } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnreadNotificationsCount } from "@/hooks/use-notifications";
-import type { NavItem } from "@/lib/auth/nav-items";
+import type { NavItem, NavIconKey } from "@/lib/auth/nav-items";
+
+/** lucide-react components can't be passed from the (server) AppLayout as
+ * props — NAV_ITEMS carries a serializable icon key instead, resolved here. */
+const ICONS: Record<NavIconKey, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  dossiers: FolderOpen,
+  scanner: ScanLine,
+  audit: ClipboardList,
+  notifications: Bell,
+  admin: Settings,
+};
 
 /**
  * Bottom tab bar, reachable one-handed — the primary nav on the phone-sized
@@ -21,7 +34,8 @@ export function AppNav({ items }: { items: NavItem[] }) {
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 print:hidden"
     >
       <ul className="mx-auto flex max-w-3xl items-stretch justify-around">
-        {items.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon }) => {
+          const Icon = ICONS[icon];
           const isActive = pathname === href || pathname.startsWith(`${href}/`);
           const badge = href === "/notifications" && unreadCount > 0 ? unreadCount : null;
           return (

@@ -18,7 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { reopenDossierAction, initialDossierActionState } from "@/lib/actions/dossiers";
+import { reopenDossierAction } from "@/lib/actions/dossiers";
+import { initialDossierActionState } from "@/lib/actions/dossiers-state";
 
 export function ReopenDossierButton({ dossierId }: { dossierId: string }) {
   const router = useRouter();

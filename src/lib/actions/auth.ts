@@ -9,13 +9,7 @@ import {
   requestPasswordResetSchema,
   updatePasswordSchema,
 } from "@/lib/validations/auth";
-
-export type FormState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-};
-
-export const initialFormState: FormState = { status: "idle" };
+import type { FormState } from "@/lib/actions/auth-state";
 
 /** Only redirect to a same-origin relative path — never trust `next` blindly. */
 function safeNextPath(value: FormDataEntryValue | null): string {

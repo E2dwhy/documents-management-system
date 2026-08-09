@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createDossierAction, initialDossierFormState } from "@/lib/actions/dossiers";
+import { createDossierAction } from "@/lib/actions/dossiers";
+import { initialDossierFormState } from "@/lib/actions/dossiers-state";
 import type { DossierType, Service } from "@/lib/data/reference-data";
 
 export function CreateDossierForm({ types, services }: { types: DossierType[]; services: Service[] }) {

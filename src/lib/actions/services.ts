@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { serviceSchema } from "@/lib/validations/service";
-
-export type ServiceFormState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-};
-
-export const initialServiceFormState: ServiceFormState = { status: "idle" };
+import type { ServiceFormState } from "@/lib/actions/services-state";
 
 /** Postgres foreign_key_violation — thrown when deleting a service/type
  * still referenced by at least one dossier. Not an app bug, just means

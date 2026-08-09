@@ -16,7 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { closeDossierAction, initialDossierActionState } from "@/lib/actions/dossiers";
+import { closeDossierAction } from "@/lib/actions/dossiers";
+import { initialDossierActionState } from "@/lib/actions/dossiers-state";
 
 export function CloseDossierButton({ dossierId }: { dossierId: string }) {
   const router = useRouter();

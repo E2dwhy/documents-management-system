@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { dossierTypeSchema } from "@/lib/validations/dossier-type";
-
-export type DossierTypeFormState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-};
-
-export const initialDossierTypeFormState: DossierTypeFormState = { status: "idle" };
+import type { DossierTypeFormState } from "@/lib/actions/dossier-types-state";
 
 function translateWriteError(error: { code?: string; message: string } | null): string {
   if (!error) return "Une erreur est survenue. Veuillez réessayer.";

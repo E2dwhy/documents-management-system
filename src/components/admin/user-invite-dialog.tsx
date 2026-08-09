@@ -23,7 +23,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFormAction } from "@/hooks/use-form-action";
-import { inviteUserAction, initialUserFormState } from "@/lib/actions/users";
+import { inviteUserAction } from "@/lib/actions/users";
+import { initialUserFormState } from "@/lib/actions/users-state";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Service } from "@/lib/data/reference-data";
 

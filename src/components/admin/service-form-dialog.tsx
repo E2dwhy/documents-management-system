@@ -17,11 +17,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFormAction } from "@/hooks/use-form-action";
-import {
-  createServiceAction,
-  updateServiceAction,
-  initialServiceFormState,
-} from "@/lib/actions/services";
+import { createServiceAction, updateServiceAction } from "@/lib/actions/services";
+import { initialServiceFormState } from "@/lib/actions/services-state";
 import type { Service } from "@/lib/data/reference-data";
 
 export function ServiceFormDialog({ service }: { service?: Service & { description: string | null } }) {

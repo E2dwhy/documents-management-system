@@ -1,11 +1,15 @@
-import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, FolderOpen, ScanLine, ClipboardList, Bell, Settings } from "lucide-react";
 import type { UserRole } from "@/types/database";
+
+/** Key into the icon map that lives in the (client) AppNav component —
+ * lucide-react components themselves can't cross the server/client
+ * boundary, since a Server Component can only pass plain, serializable
+ * data (see NAV_ITEMS below) to a Client Component. */
+export type NavIconKey = "dashboard" | "dossiers" | "scanner" | "audit" | "notifications" | "admin";
 
 export interface NavItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: NavIconKey;
   roles: UserRole[];
 }
 
@@ -19,37 +23,37 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard",
     label: "Tableau de bord",
-    icon: LayoutDashboard,
+    icon: "dashboard",
     roles: ["admin", "responsable_service", "agent", "auditeur"],
   },
   {
     href: "/dossiers",
     label: "Dossiers",
-    icon: FolderOpen,
+    icon: "dossiers",
     roles: ["admin", "responsable_service", "agent", "auditeur"],
   },
   {
     href: "/scanner",
     label: "Scanner",
-    icon: ScanLine,
+    icon: "scanner",
     roles: ["admin", "responsable_service", "agent"],
   },
   {
     href: "/audit",
     label: "Audit",
-    icon: ClipboardList,
+    icon: "audit",
     roles: ["admin", "auditeur"],
   },
   {
     href: "/notifications",
     label: "Alertes",
-    icon: Bell,
+    icon: "notifications",
     roles: ["admin", "responsable_service", "agent", "auditeur"],
   },
   {
     href: "/admin",
     label: "Administration",
-    icon: Settings,
+    icon: "admin",
     roles: ["admin"],
   },
 ];

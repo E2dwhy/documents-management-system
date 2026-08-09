@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
-
-export type SettingsFormState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-};
-
-export const initialSettingsFormState: SettingsFormState = { status: "idle" };
+import type { SettingsFormState } from "@/lib/actions/settings-state";
 
 const orgNameSchema = z.string().trim().min(1, "Le nom est requis").max(150, "150 caractères maximum");
 

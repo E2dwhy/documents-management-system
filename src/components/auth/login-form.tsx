@@ -6,7 +6,8 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginAction, initialFormState } from "@/lib/actions/auth";
+import { loginAction } from "@/lib/actions/auth";
+import { initialFormState } from "@/lib/actions/auth-state";
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, isPending] = useActionState(loginAction, initialFormState);

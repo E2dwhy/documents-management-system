@@ -17,11 +17,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFormAction } from "@/hooks/use-form-action";
-import {
-  createDossierTypeAction,
-  updateDossierTypeAction,
-  initialDossierTypeFormState,
-} from "@/lib/actions/dossier-types";
+import { createDossierTypeAction, updateDossierTypeAction } from "@/lib/actions/dossier-types";
+import { initialDossierTypeFormState } from "@/lib/actions/dossier-types-state";
 import type { DossierTypeRow } from "@/components/admin/dossier-types-manager";
 
 export function DossierTypeFormDialog({ type }: { type?: DossierTypeRow }) {

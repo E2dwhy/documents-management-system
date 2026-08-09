@@ -5,13 +5,7 @@ import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { userInviteSchema, userEditSchema } from "@/lib/validations/user-invite";
 import { translateAuthError } from "@/lib/auth/errors";
 import { appConfig } from "@/lib/config";
-
-export type UserFormState = {
-  status: "idle" | "error" | "success";
-  message?: string;
-};
-
-export const initialUserFormState: UserFormState = { status: "idle" };
+import type { UserFormState } from "@/lib/actions/users-state";
 
 /**
  * inviteUserAction uses the service-role client (auth.admin.*), which
