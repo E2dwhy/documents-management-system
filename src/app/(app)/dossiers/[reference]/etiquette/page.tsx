@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDossierByReference, getDossierType } from "@/lib/data/dossiers";
 import { QrLabel } from "@/components/dossiers/qr-label";
-import { appConfig } from "@/lib/config";
+import { getAppSettings } from "@/lib/data/app-settings";
 
 export const metadata: Metadata = { title: "Étiquette QR" };
 
@@ -15,7 +15,7 @@ export default async function DossierLabelPage({
   const dossier = await getDossierByReference(reference);
   if (!dossier) notFound();
 
-  const type = await getDossierType(dossier.type_id);
+  const [type, settings] = await Promise.all([getDossierType(dossier.type_id), getAppSettings()]);
 
   return (
     <div className="space-y-6">
@@ -32,7 +32,7 @@ export default async function DossierLabelPage({
         title={dossier.title}
         ownerName={dossier.owner_name}
         typeLabel={type?.label ?? ""}
-        orgName={appConfig.orgName}
+        orgName={settings.orgName}
       />
     </div>
   );

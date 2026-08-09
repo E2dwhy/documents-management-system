@@ -32,6 +32,30 @@ export type MouvementAction =
 export interface Database {
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: boolean;
+          org_name: string;
+          logo_url: string | null;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: boolean;
+          org_name?: string;
+          logo_url?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: boolean;
+          org_name?: string;
+          logo_url?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       services: {
         Row: {
           id: string;

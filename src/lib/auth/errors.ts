@@ -15,6 +15,21 @@ const MESSAGES: Record<string, string> = {
   "Auth session missing!": "Votre session a expiré. Veuillez recommencer.",
 };
 
+/**
+ * A few GoTrue messages interpolate dynamic values (the email address
+ * itself), so they can't be matched by exact equality like the table
+ * above — matched by substring instead. Confirmed live: Supabase rejects
+ * addresses whose domain isn't a real TLD (e.g. the .demo domain this
+ * project's own seed accounts use — deliberately fake so a demo can never
+ * email a real person, at the cost of "mot de passe oublié" not actually
+ * being deliverable for them).
+ */
+const PATTERN_MESSAGES: [pattern: string, message: string][] = [
+  ["is invalid", "Adresse email invalide ou domaine non joignable."],
+];
+
 export function translateAuthError(message: string): string {
-  return MESSAGES[message] ?? "Une erreur est survenue. Veuillez réessayer.";
+  if (MESSAGES[message]) return MESSAGES[message];
+  const match = PATTERN_MESSAGES.find(([pattern]) => message.includes(pattern));
+  return match?.[1] ?? "Une erreur est survenue. Veuillez réessayer.";
 }

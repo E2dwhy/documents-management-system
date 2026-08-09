@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
+import { getAppSettings } from "@/lib/data/app-settings";
 import { navItemsForRole } from "@/lib/auth/nav-items";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/layout/app-header";
@@ -15,7 +16,7 @@ import { CacheProfileOnLoad } from "@/components/offline/cache-profile-on-load";
  * elsewhere).
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const profile = await getCurrentProfile();
+  const [profile, settings] = await Promise.all([getCurrentProfile(), getAppSettings()]);
 
   if (!profile || !profile.is_active) {
     redirect("/login");
@@ -27,6 +28,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen flex-col">
       <CacheProfileOnLoad profile={profile} />
       <AppHeader
+        orgName={settings.orgName}
+        logoUrl={settings.logoUrl}
         fullName={profile.full_name}
         roleLabel={ROLE_LABELS[profile.role]}
         serviceName={profile.service_name}
