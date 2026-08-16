@@ -3,6 +3,7 @@ import { HelpCircle } from "lucide-react";
 import { UserMenu } from "@/components/layout/user-menu";
 import { SyncStatusBadge } from "@/components/offline/sync-status-badge";
 import { OrgBrand } from "@/components/layout/org-brand";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export function AppHeader({
@@ -29,6 +30,7 @@ export function AppHeader({
             </Link>
           </Button>
           <SyncStatusBadge />
+          <ThemeToggle />
           <UserMenu fullName={fullName} roleLabel={roleLabel} serviceName={serviceName} />
         </div>
       </div>
