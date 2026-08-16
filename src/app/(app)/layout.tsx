@@ -6,6 +6,7 @@ import { ROLE_LABELS } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNav } from "@/components/layout/app-nav";
 import { CacheProfileOnLoad } from "@/components/offline/cache-profile-on-load";
+import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 
 /**
  * Shared shell for every authenticated screen: top bar (org + user menu)
@@ -27,6 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen flex-col">
       <CacheProfileOnLoad profile={profile} />
+      <OnboardingTour role={profile.role} firstName={profile.full_name.split(" ")[0] ?? ""} />
       <AppHeader
         orgName={settings.orgName}
         logoUrl={settings.logoUrl}
