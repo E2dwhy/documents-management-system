@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Dices } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+/** 8+ random alphanumeric chars — meets the 8-char minimum, easy enough to
+ * read aloud/copy when handing it to someone directly. */
+function generatePassword(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
 import {
   Select,
   SelectContent,
@@ -30,9 +36,11 @@ import type { Service } from "@/lib/data/reference-data";
 
 export function UserInviteDialog({ services }: { services: Service[] }) {
   const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
   const { state, isPending, submit } = useFormAction(inviteUserAction, initialUserFormState, (result) => {
     setOpen(false);
-    toast.success(result.message ?? "Compte créé.");
+    setPassword("");
+    toast.success(result.message ?? "Compte créé.", { duration: 15000 });
   });
 
   return (
@@ -90,6 +98,28 @@ export function UserInviteDialog({ services }: { services: Service[] }) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Mot de passe initial (optionnel)</Label>
+            <div className="flex gap-2">
+              <Input
+                id="password"
+                name="password"
+                minLength={8}
+                placeholder="Laisser vide pour envoyer un lien par email"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button type="button" variant="outline" size="icon" onClick={() => setPassword(generatePassword())}>
+                <Dices className="size-4" aria-hidden />
+                <span className="sr-only">Générer un mot de passe</span>
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Rend le compte utilisable tout de suite, sans dépendre de l&apos;email — pratique pour
+              tester ou simuler un circuit sans attendre. À communiquer vous-même à la personne.
+            </p>
           </div>
 
           {state.status === "error" && state.message ? (

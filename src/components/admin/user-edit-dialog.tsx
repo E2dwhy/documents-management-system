@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, Dices, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -23,17 +24,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFormAction } from "@/hooks/use-form-action";
-import { updateUserAction } from "@/lib/actions/users";
+import { updateUserAction, adminSetPasswordAction } from "@/lib/actions/users";
 import { initialUserFormState } from "@/lib/actions/users-state";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Service } from "@/lib/data/reference-data";
 import type { UserRow } from "@/components/admin/users-manager";
 
+/** 8+ random alphanumeric chars — meets the 8-char minimum, easy enough to
+ * read aloud/copy when handing it to someone directly. */
+function generatePassword(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 export function UserEditDialog({ user, services }: { user: UserRow; services: Service[] }) {
   const [open, setOpen] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const { state, isPending, submit } = useFormAction(updateUserAction, initialUserFormState, () => {
     setOpen(false);
     toast.success("Utilisateur modifié.");
+  });
+  const passwordAction = useFormAction(adminSetPasswordAction, initialUserFormState, (result) => {
+    setShowPasswordForm(false);
+    setNewPassword("");
+    toast.success(result.message ?? "Mot de passe défini.", { duration: 15000 });
   });
 
   return (
@@ -100,6 +114,56 @@ export function UserEditDialog({ user, services }: { user: UserRow; services: Se
             </Button>
           </DialogFooter>
         </form>
+
+        <Separator />
+
+        {showPasswordForm ? (
+          <form action={passwordAction.submit} className="space-y-3">
+            <input type="hidden" name="id" value={user.id} />
+            <div className="space-y-1.5">
+              <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+              <p className="text-xs text-muted-foreground">
+                Débloque le compte immédiatement, sans email — utile si l&apos;utilisateur n&apos;a
+                jamais réussi à se connecter (email jamais reçu/cliqué).
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  id="newPassword"
+                  name="password"
+                  minLength={8}
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => setNewPassword(generatePassword())}>
+                  <Dices className="size-4" aria-hidden />
+                  <span className="sr-only">Générer un mot de passe</span>
+                </Button>
+              </div>
+            </div>
+
+            {passwordAction.state.status === "error" && passwordAction.state.message ? (
+              <p role="alert" className="text-sm text-destructive">
+                {passwordAction.state.message}
+              </p>
+            ) : null}
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowPasswordForm(false)}>
+                Annuler
+              </Button>
+              <Button type="submit" size="sm" disabled={passwordAction.isPending}>
+                {passwordAction.isPending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                Définir
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => setShowPasswordForm(true)}>
+            <KeyRound className="size-4" aria-hidden />
+            Définir un mot de passe
+          </Button>
+        )}
       </DialogContent>
     </Dialog>
   );

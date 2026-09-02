@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { loginAction } from "@/lib/actions/auth";
 import { initialFormState } from "@/lib/actions/auth-state";
@@ -37,10 +38,9 @@ export function LoginForm({ next }: { next?: string }) {
             Mot de passe oublié ?
           </Link>
         </div>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           className="h-11"

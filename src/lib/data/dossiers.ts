@@ -25,6 +25,35 @@ export async function getDossierByQrToken(qrToken: string): Promise<DossierRow |
   return data ?? null;
 }
 
+/**
+ * Batch lookup for the printable QR label sheet (`/dossiers/etiquettes`) —
+ * one query for the whole selection instead of N. RLS still applies per
+ * row, so a reference the caller can't see is silently dropped rather than
+ * erroring; the result is reordered to match `references` so the printed
+ * sheet follows the order the user picked them in.
+ */
+export async function getDossiersByReferences(references: string[]): Promise<DossierRow[]> {
+  if (references.length === 0) return [];
+
+  const supabase = await createClient();
+  const { data } = await supabase.from("dossiers").select("*").in("reference", references);
+  if (!data) return [];
+
+  const byReference = new Map(data.map((d) => [d.reference, d]));
+  return references.map((ref) => byReference.get(ref)).filter((d): d is DossierRow => d !== undefined);
+}
+
+export async function getDossierTypesByIds(
+  ids: (string | null | undefined)[],
+): Promise<Map<string, { id: string; label: string }>> {
+  const uniqueIds = [...new Set(ids)].filter((id): id is string => Boolean(id));
+  if (uniqueIds.length === 0) return new Map();
+
+  const supabase = await createClient();
+  const { data } = await supabase.from("dossier_types").select("id, label").in("id", uniqueIds);
+  return new Map((data ?? []).map((t) => [t.id, t]));
+}
+
 export async function getDossierType(typeId: string) {
   const supabase = await createClient();
   const { data } = await supabase

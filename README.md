@@ -173,6 +173,14 @@ depuis **Administration → Utilisateurs** une fois qu'un compte admin existe.
 > (par défaut sur Next.js 16) : Serwist (le service worker PWA) n'a pas encore
 > de support Turbopack stable. À revisiter quand `@serwist/turbopack` mûrit.
 
+**Accès navigateur classique :** l'application est utilisable intégralement
+dans un simple onglet de navigateur (Chrome, Firefox, Safari…), sans installer
+la PWA — routing, authentification et scan QR (caméra via `getUserMedia`)
+fonctionnent tous en dehors du mode installé, qui n'apporte que l'icône sur
+l'écran d'accueil et le plein écran. Seule contrainte : en production, le scan
+caméra requiert HTTPS (contexte sécurisé du navigateur) — `localhost` en dev
+en est dispensé.
+
 ## Rôles et permissions
 
 | Rôle | Accès |

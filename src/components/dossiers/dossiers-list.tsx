@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, QrCode, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,9 @@ import type { DossierRow } from "@/lib/data/dossiers";
 import type { DossierType, Service } from "@/lib/data/reference-data";
 
 export function DossiersList({ types, services }: { types: DossierType[]; services: Service[] }) {
+  const router = useRouter();
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [searchInput, setSearchInput] = useState("");
   const search = useDebouncedValue(searchInput, 300);
   const [status, setStatus] = useState<DossierStatus | "all">("all");
@@ -74,6 +78,25 @@ export function DossiersList({ types, services }: { types: DossierType[]; servic
     setTypeId("all");
     setPeriod("all");
     setPage(1);
+  }
+
+  function toggleSelectionMode() {
+    setSelectionMode((prev) => !prev);
+    setSelected(new Set());
+  }
+
+  function toggleSelected(reference: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(reference)) next.delete(reference);
+      else next.add(reference);
+      return next;
+    });
+  }
+
+  function goToLabelSheet() {
+    const refs = [...selected].join(",");
+    router.push(`/dossiers/etiquettes?refs=${encodeURIComponent(refs)}`);
   }
 
   const totalPages = data ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
@@ -196,24 +219,62 @@ export function DossiersList({ types, services }: { types: DossierType[]; servic
         <>
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">{data.count} dossier{data.count > 1 ? "s" : ""}</p>
-            <ExportButtons
-              fetchRows={() => fetchAllDossiersForExport({ search, status, serviceId, typeId, period })}
-              columns={exportColumns}
-              title="Dossiers"
-              filename="dossiers"
-            />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={toggleSelectionMode}>
+                {selectionMode ? (
+                  <>
+                    <X className="size-3.5" aria-hidden />
+                    Annuler
+                  </>
+                ) : (
+                  <>
+                    <QrCode className="size-3.5" aria-hidden />
+                    Sélectionner
+                  </>
+                )}
+              </Button>
+              <ExportButtons
+                fetchRows={() => fetchAllDossiersForExport({ search, status, serviceId, typeId, period })}
+                columns={exportColumns}
+                title="Dossiers"
+                filename="dossiers"
+              />
+            </div>
           </div>
+
+          {selectionMode ? (
+            <div className="sticky top-14 z-30 -mx-4 flex items-center justify-between gap-2 border-b bg-background/95 px-4 py-2 backdrop-blur supports-backdrop-filter:bg-background/60">
+              <span className="text-xs text-muted-foreground">
+                {selected.size} sélectionné{selected.size > 1 ? "s" : ""}
+              </span>
+              <Button size="sm" className="h-8 text-xs" disabled={selected.size === 0} onClick={goToLabelSheet}>
+                <QrCode className="size-3.5" aria-hidden />
+                Planche A4
+              </Button>
+            </div>
+          ) : null}
+
           <ul className="space-y-2">
-            {data.rows.map((dossier) => (
-              <li key={dossier.id}>
-                <Link
-                  href={`/dossiers/${dossier.reference}`}
-                  className="flex flex-col gap-2 rounded-lg border p-3 transition-colors hover:bg-accent"
-                >
+            {data.rows.map((dossier) => {
+              const isSelected = selected.has(dossier.reference);
+              const rowContent = (
+                <>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate font-mono text-xs text-muted-foreground">{dossier.reference}</p>
-                      <p className="truncate text-sm font-medium">{dossier.title}</p>
+                    <div className="flex min-w-0 items-start gap-2">
+                      {selectionMode ? (
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelected(dossier.reference)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Sélectionner ${dossier.reference}`}
+                          className="mt-0.5 size-4 shrink-0 accent-primary"
+                        />
+                      ) : null}
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-xs text-muted-foreground">{dossier.reference}</p>
+                        <p className="truncate text-sm font-medium">{dossier.title}</p>
+                      </div>
                     </div>
                     <DossierStatusBadge status={dossier.status} className="shrink-0" />
                   </div>
@@ -232,9 +293,32 @@ export function DossiersList({ types, services }: { types: DossierType[]; servic
                     </span>
                     <span>{formatDate(dossier.created_at)}</span>
                   </div>
-                </Link>
-              </li>
-            ))}
+                </>
+              );
+
+              return (
+                <li key={dossier.id}>
+                  {selectionMode ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSelected(dossier.reference)}
+                      className={`flex w-full flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:bg-accent ${
+                        isSelected ? "border-primary bg-primary/5" : ""
+                      }`}
+                    >
+                      {rowContent}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/dossiers/${dossier.reference}`}
+                      className="flex flex-col gap-2 rounded-lg border p-3 transition-colors hover:bg-accent"
+                    >
+                      {rowContent}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
 
           {totalPages > 1 ? (

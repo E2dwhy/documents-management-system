@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { updatePasswordAction } from "@/lib/actions/auth";
 import { initialFormState } from "@/lib/actions/auth-state";
@@ -15,10 +15,9 @@ export function UpdatePasswordForm() {
     <form action={formAction} className="space-y-4" noValidate>
       <div className="space-y-1.5">
         <Label htmlFor="password">Nouveau mot de passe</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}
@@ -28,10 +27,9 @@ export function UpdatePasswordForm() {
 
       <div className="space-y-1.5">
         <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}
