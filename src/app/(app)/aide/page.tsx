@@ -35,7 +35,7 @@ const NAV_REFERENCE: InfoItem[] = [
 ];
 
 const SCAN_ACTIONS: InfoItem[] = [
-  { icon: ArrowRightLeft, label: "Transférer", description: "Envoie le dossier vers un autre service" },
+  { icon: ArrowRightLeft, label: "Transférer", description: "Envoie le dossier vers un autre service (sauf à la dernière étape du circuit)" },
   { icon: CheckCircle2, label: "Valider", description: "Marque l'étape actuelle comme validée" },
   { icon: XCircle, label: "Rejeter", description: "Marque le dossier comme rejeté" },
 ];

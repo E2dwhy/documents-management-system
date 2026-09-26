@@ -11,6 +11,15 @@ export function canAccessDossier(profile: CurrentProfile, dossier: DossierRow): 
   return dossier.current_service_id === profile.service_id || dossier.created_by === profile.id;
 }
 
+/**
+ * True when the next scan is the dossier's last step (scan_count + 1 =
+ * max_scans). No transfer is allowed then — mirrors the FINAL_STEP check in
+ * register_scan (supabase/migrations/20260926120000_no_transfer_at_final_step.sql).
+ */
+export function isFinalStep(dossier: DossierRow): boolean {
+  return dossier.scan_count + 1 >= dossier.max_scans;
+}
+
 /** Returns a French reason the dossier can't be scanned right now, or null if it can. */
 export function getScanBlockReason(profile: CurrentProfile, dossier: DossierRow): string | null {
   if (dossier.is_locked) {

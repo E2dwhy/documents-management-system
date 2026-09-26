@@ -7,6 +7,13 @@ import { Loader2, Printer, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { qrPayloadUrl } from "@/lib/dossiers/qr";
 
 export interface LabelData {
@@ -16,6 +23,9 @@ export interface LabelData {
   typeLabel: string;
 }
 
+const LABELS_PER_PAGE = 24;
+const COPIES_OPTIONS = [1, 2, 4, 8, 12, LABELS_PER_PAGE];
+
 /**
  * A4 sheet of QR labels — 3 columns x 8 rows (24/page), 63.5 x 33.9mm each.
  * That size matches common off-the-shelf sticker-sheet formats (Avery
@@ -24,10 +34,15 @@ export interface LabelData {
  * adhesive sheet (toggle off). Distinct from `QrLabel` (single dossier,
  * `[reference]/etiquette`), which stays untouched — this is a parallel,
  * bulk-print flow built for the same `qrPayloadUrl` the scanner expects.
+ *
+ * Each dossier is repeated `copies` times (default: a full page) so one
+ * label can be cut out and stuck on each page of the physical document.
  */
 export function QrLabelSheet({ labels, orgName }: { labels: LabelData[]; orgName: string }) {
   const [dataUrls, setDataUrls] = useState<Map<string, string>>(new Map());
   const [showCutLines, setShowCutLines] = useState(true);
+  const [copies, setCopies] = useState(LABELS_PER_PAGE);
+  const printedLabels = labels.flatMap((label) => Array.from({ length: copies }, () => label));
 
   useEffect(() => {
     let cancelled = false;
@@ -62,7 +77,7 @@ export function QrLabelSheet({ labels, orgName }: { labels: LabelData[]; orgName
     const qrSize = 22;
 
     const doc = new jsPDF({ unit: "mm", format: "a4" });
-    labels.forEach((label, i) => {
+    printedLabels.forEach((label, i) => {
       const perPage = cols * rows;
       const posInPage = i % perPage;
       if (i > 0 && posInPage === 0) doc.addPage();
@@ -81,7 +96,11 @@ export function QrLabelSheet({ labels, orgName }: { labels: LabelData[]; orgName
       doc.setFontSize(7);
       doc.text(doc.splitTextToSize(label.title, cellW - qrSize - 8), textX, y + cellH / 2 + 2);
     });
-    doc.save(`planche-qr-${labels.length}-dossiers.pdf`);
+    doc.save(
+      labels.length === 1
+        ? `planche-qr-${labels[0].reference}.pdf`
+        : `planche-qr-${labels.length}-dossiers.pdf`,
+    );
   }
 
   if (labels.length === 0) {
@@ -95,6 +114,23 @@ export function QrLabelSheet({ labels, orgName }: { labels: LabelData[]; orgName
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="copies" className="text-sm font-normal">
+            Exemplaires par dossier
+          </Label>
+          <Select value={String(copies)} onValueChange={(value) => setCopies(Number(value))}>
+            <SelectTrigger id="copies" className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COPIES_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n === LABELS_PER_PAGE ? `Page complète (${n})` : n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-2">
           <Switch id="cut-lines" checked={showCutLines} onCheckedChange={setShowCutLines} />
           <Label htmlFor="cut-lines" className="text-sm font-normal">
@@ -124,11 +160,11 @@ export function QrLabelSheet({ labels, orgName }: { labels: LabelData[]; orgName
         className="qr-sheet grid grid-cols-3 gap-0 bg-white text-black"
         style={{ visibility: allReady ? "visible" : "hidden" }}
       >
-        {labels.map((label) => {
+        {printedLabels.map((label, i) => {
           const dataUrl = dataUrls.get(label.reference);
           return (
             <div
-              key={label.reference}
+              key={`${label.reference}-${i}`}
               className={`flex items-center gap-2 p-2 ${showCutLines ? "border border-dashed border-gray-300" : ""}`}
               style={{ height: "33.9mm" }}
             >

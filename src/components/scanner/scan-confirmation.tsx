@@ -19,7 +19,7 @@ import {
 import { DossierStatusBadge } from "@/components/dossiers/dossier-status-badge";
 import { MouvementTimeline } from "@/components/dossiers/mouvement-timeline";
 import { submitOrQueueScan, type SubmitOutcome } from "@/lib/offline/sync";
-import { getScanBlockReason } from "@/lib/dossiers/access";
+import { getScanBlockReason, isFinalStep } from "@/lib/dossiers/access";
 import { formatDateTime, formatRelative } from "@/lib/date";
 import type { DossierRow } from "@/lib/data/dossiers";
 import type { CachedMouvement } from "@/lib/offline/types";
@@ -55,7 +55,10 @@ export function ScanConfirmation({
   onSubmitted?: (outcome: SubmitOutcome) => void;
 }) {
   const router = useRouter();
-  const [selectedAction, setSelectedAction] = useState<ScanActionChoice>("transfert");
+  const finalStep = isFinalStep(dossier);
+  const [chosenAction, setChosenAction] = useState<ScanActionChoice>(finalStep ? "valide" : "transfert");
+  // No transfer at the last step — the dossier stays in its current service.
+  const selectedAction: ScanActionChoice = finalStep && chosenAction === "transfert" ? "valide" : chosenAction;
   const [targetServiceId, setTargetServiceId] = useState("");
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,20 +149,22 @@ export function ScanConfirmation({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <Label>Action</Label>
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              type="button"
-              variant={selectedAction === "transfert" ? "default" : "outline"}
-              onClick={() => setSelectedAction("transfert")}
-              className="h-14 flex-col gap-1 text-xs"
-            >
-              <ArrowRightLeft className="size-4" aria-hidden />
-              Transférer
-            </Button>
+          <div className={`grid gap-2 ${finalStep ? "grid-cols-2" : "grid-cols-3"}`}>
+            {finalStep ? null : (
+              <Button
+                type="button"
+                variant={selectedAction === "transfert" ? "default" : "outline"}
+                onClick={() => setChosenAction("transfert")}
+                className="h-14 flex-col gap-1 text-xs"
+              >
+                <ArrowRightLeft className="size-4" aria-hidden />
+                Transférer
+              </Button>
+            )}
             <Button
               type="button"
               variant={selectedAction === "valide" ? "default" : "outline"}
-              onClick={() => setSelectedAction("valide")}
+              onClick={() => setChosenAction("valide")}
               className="h-14 flex-col gap-1 text-xs"
             >
               <CheckCircle2 className="size-4" aria-hidden />
@@ -168,13 +173,18 @@ export function ScanConfirmation({
             <Button
               type="button"
               variant={selectedAction === "rejete" ? "default" : "outline"}
-              onClick={() => setSelectedAction("rejete")}
+              onClick={() => setChosenAction("rejete")}
               className="h-14 flex-col gap-1 text-xs"
             >
               <XCircle className="size-4" aria-hidden />
               Rejeter
             </Button>
           </div>
+          {finalStep ? (
+            <p className="text-xs text-muted-foreground">
+              Dernière étape du circuit : le dossier ne peut plus être transféré.
+            </p>
+          ) : null}
         </div>
 
         {selectedAction === "transfert" ? (

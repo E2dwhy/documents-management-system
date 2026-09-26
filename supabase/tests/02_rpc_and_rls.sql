@@ -52,7 +52,7 @@ declare
   v_service_id uuid;
   v_dossier public.dossiers;
 begin
-  select id into v_type_id from public.dossier_types where name = 'demande_attestation'; -- max_scans = 2
+  select id into v_type_id from public.dossier_types where name = 'dossier_contentieux'; -- max_scans = 3
   select id into v_service_id from public.services where name = 'Accueil';
 
   v_dossier := public.create_dossier('Dossier Test 1', v_type_id, v_service_id, 'Konan Yao');
@@ -60,7 +60,7 @@ begin
   if v_dossier.reference !~ '^DOS-\d{4}-\d{5}$' then
     raise exception 'TEST FAILED: unexpected reference format: %', v_dossier.reference;
   end if;
-  if v_dossier.max_scans <> 2 then
+  if v_dossier.max_scans <> 3 then
     raise exception 'TEST FAILED: max_scans not copied from type (got %)', v_dossier.max_scans;
   end if;
   if v_dossier.scan_count <> 0 or v_dossier.status <> 'en_cours' or v_dossier.is_locked then
@@ -225,8 +225,8 @@ end
 $$;
 commit;
 
--- move dossier1 (type max_scans=2, currently scan_count=1) to Secrétariat
--- Général as agent, reaching the 2nd/last step
+-- move dossier1 (type max_scans=3, currently scan_count=1) to Secrétariat
+-- Général as agent — step 2/3, a transfer is still allowed
 begin;
 set local role authenticated;
 set local request.jwt.claim.sub = :agent_id;
@@ -237,9 +237,51 @@ declare
   v_dossier public.dossiers;
 begin
   select id into v_secretariat from public.services where name = 'Secrétariat Général';
-  v_dossier := public.register_scan(v_dossier_id, 'transfert', gen_random_uuid(), v_secretariat, null, 'Transfert final');
-  if v_dossier.scan_count <> 2 then
-    raise exception 'TEST FAILED: expected scan_count=2, got %', v_dossier.scan_count;
+  v_dossier := public.register_scan(v_dossier_id, 'transfert', gen_random_uuid(), v_secretariat, null, 'Transmis au secrétariat');
+  if v_dossier.scan_count <> 2 or v_dossier.current_service_id <> v_secretariat then
+    raise exception 'TEST FAILED: expected scan_count=2 at Secrétariat, got % at %', v_dossier.scan_count, v_dossier.current_service_id;
+  end if;
+  raise notice 'PASS: transfer allowed before the last step (scan_count=%)', v_dossier.scan_count;
+end
+$$;
+commit;
+
+-- step 3/3 is the last step: a transfer (or a scan that moves the dossier)
+-- must fail with FINAL_STEP; a plain validating scan succeeds
+begin;
+set local role authenticated;
+set local request.jwt.claim.sub = :resp_id;
+do $$
+declare
+  v_dossier_id uuid := (select value::uuid from test_state where key = 'dossier1_id');
+  v_accueil uuid;
+  v_dossier public.dossiers;
+begin
+  select id into v_accueil from public.services where name = 'Accueil';
+  begin
+    perform public.register_scan(v_dossier_id, 'transfert', gen_random_uuid(), v_accueil, null, 'Ne devrait pas marcher');
+    raise exception 'TEST FAILED: transferred a dossier at its last step';
+  exception
+    when others then
+      if sqlerrm not like 'FINAL_STEP%' then
+        raise exception 'TEST FAILED: expected FINAL_STEP, got: %', sqlerrm;
+      end if;
+      raise notice 'PASS: transfer blocked at last step (%)', sqlerrm;
+  end;
+  begin
+    perform public.register_scan(v_dossier_id, 'scan', gen_random_uuid(), v_accueil, null, 'Ne devrait pas marcher');
+    raise exception 'TEST FAILED: moved a dossier via scan at its last step';
+  exception
+    when others then
+      if sqlerrm not like 'FINAL_STEP%' then
+        raise exception 'TEST FAILED: expected FINAL_STEP, got: %', sqlerrm;
+      end if;
+      raise notice 'PASS: service change via scan blocked at last step (%)', sqlerrm;
+  end;
+
+  v_dossier := public.register_scan(v_dossier_id, 'scan', gen_random_uuid(), null, 'valide', 'Validé');
+  if v_dossier.scan_count <> 3 or v_dossier.status <> 'valide' then
+    raise exception 'TEST FAILED: expected scan_count=3/valide, got %/%', v_dossier.scan_count, v_dossier.status;
   end if;
   raise notice 'PASS: dossier1 reached last step (scan_count=%/max_scans=%)', v_dossier.scan_count, v_dossier.max_scans;
 end

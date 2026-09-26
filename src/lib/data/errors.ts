@@ -11,6 +11,7 @@ const PREFIX_MESSAGES: [prefix: string, message: string][] = [
   ["DOSSIER_LOCKED", "Ce dossier est clôturé et ne peut plus être modifié."],
   ["NOT_READY", "Ce dossier n'a pas encore atteint sa dernière étape."],
   ["NOT_CLOSED", "Ce dossier n'est pas clôturé."],
+  ["FINAL_STEP", "Dernière étape du circuit : le dossier ne peut plus être transféré."],
 ];
 
 export function translateRpcError(message?: string | null): string {
